@@ -1,66 +1,60 @@
-# 🚦 Traffic Light Controller (Verilog)
+# Traffic Light Controller (FPGA)
 
-This project implements an intelligent **Traffic Light Controller** using Verilog HDL, designed to efficiently manage traffic at an intersection between a **highway road** and a **city street**.
+## Overview
+This project implements a **traffic light controller** using Verilog HDL on an FPGA board.  
+The controller manages two-way traffic (North-South and East-West) with the following sequence:
+- **NS Green → NS Yellow → EW Green → EW Yellow → repeat**
 
-## 📘 Project Overview
-
-In traditional traffic light systems, the timer-based red and green signals operate independently of real-time traffic conditions. For example, even when no vehicle is present on the city road, the highway may still receive a red signal for a fixed 60 seconds, causing unnecessary delays.
-
-This project addresses this inefficiency by integrating **vehicle sensors** on both roads. Based on vehicle presence, the controller adjusts the signal timers dynamically to reduce waiting time and improve traffic flow.
-
-## 🧠 Key Features
-
-- **Sensor-Based Logic:**  
-  Sensors detect the presence or absence of vehicles on both city and highway roads.
-
-- **Dynamic Timer Adjustment:**  
-  - Default highway signal duration: **60 seconds**  
-  - Default city signal duration: **50 seconds**  
-  - If **no vehicle** is detected on the city road, highway timer increases by **10 seconds**
-  - Similarly, if **no vehicle** is on the highway, the city timer increases by **10 seconds**
-
-- **Optimized Waiting Time:**  
-  Prevents unnecessary delays by skipping green signals where no vehicle is waiting.
-
-## ⚙️ How It Works
-
-1. **Initialization:**  
-   Timers are set to their default durations: 60s for highway, 50s for city road.
-
-2. **Sensor Input Evaluation:**  
-   At each cycle, vehicle presence is evaluated from sensors.
-
-3. **Timer Adjustment Logic:**  
-   - If a road has no vehicle detected, the opposite road gets an extended green signal by 10s.
-   - Normal signal sequence continues otherwise.
-
-4. **Signal Switching:**  
-   Traffic lights toggle between red, yellow, and green based on current timer and sensor inputs.
-
-## 📂 Files
-
-- `traffic_light.v`: Main Verilog module for traffic light control logic.
-- `testbench.v`: Testbench to simulate and verify traffic behavior.
-- `README.md`: Project documentation.
-
-## 🧪 Simulation & Testing
-
-Use ModelSim, Vivado, or any Verilog simulation tool to run the testbench and visualize the signal changes using waveforms or console outputs.
-
-## 🛠 Tools Used
-
-- Verilog HDL
-- ModelSim / Vivado
-- FPGA-ready design logic
-
-## 📈 Impact
-
-This controller improves real-world traffic efficiency by:
-
-- Minimizing vehicle idle time
-- Reducing fuel wastage and pollution
-- Enhancing intelligent traffic management in smart cities
+The design includes:
+- **Clock divider** to convert a 100 MHz FPGA clock to 1 Hz.
+- **Finite State Machine (FSM)** for light control.
+- **Synchronous reset** to initialize the system.
 
 ---
 
-Feel free to clone, modify, and deploy this controller for research or practical implementations. 🚗💡🚦
+## Features
+- **North-South (NS) and East-West (EW) traffic lights**:
+  - `3-bit` output for each direction:
+    - Bit `[2]` → Red
+    - Bit `[1]` → Yellow
+    - Bit `[0]` → Green
+- **Timing**:
+  - NS Green: 5 seconds
+  - NS Yellow: 2 seconds
+  - EW Green: 5 seconds
+  - EW Yellow: 2 seconds
+- Designed for human-visible LED blinking on FPGA.
+
+  ## How It Works
+### FSM States
+- **S_NS_GREEN** → NS = Green, EW = Red (5s)
+- **S_NS_YELLOW** → NS = Yellow, EW = Red (2s)
+- **S_EW_GREEN** → NS = Red, EW = Green (5s)
+- **S_EW_YELLOW** → NS = Red, EW = Yellow (2s)
+
+### Clock Divider
+- Converts 100 MHz clock to 1 Hz.
+- Generates `one_sec_tick` for state timing.
+
+---
+
+## Requirements
+- **Xilinx Vivado (2020.2 or later)** or equivalent version.
+- FPGA board (tested on **Basys3 / Nexys A7**).
+- USB JTAG cable and drivers installed.
+
+---
+
+## Steps to Run
+1. **Clone the repository** or copy source files.
+2. **Open Vivado** and create a new project.
+3. **Add the Verilog source file** (`traffic_controller.v`) and constraints file (`traffic_controller.xdc`).
+4. **Synthesize, implement, and generate bitstream**:
+
+    launch_runs synth_1
+    launch_runs impl_1 -to_step write_bitstream
+    open_hw_manager
+    launch_hw_server
+    connect_hw_server
+    open_hw_target
+    program_hw_devices
